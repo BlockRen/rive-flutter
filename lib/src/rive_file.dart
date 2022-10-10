@@ -27,12 +27,25 @@ import 'package:rive/src/rive_core/animation/state_transition.dart';
 import 'package:rive/src/rive_core/artboard.dart';
 import 'package:rive/src/rive_core/assets/file_asset.dart';
 import 'package:rive/src/rive_core/assets/image_asset.dart';
+import 'package:rive/src/rive_core/assets/file_asset_contents.dart';
 import 'package:rive/src/rive_core/backboard.dart';
 import 'package:rive/src/rive_core/component.dart';
 import 'package:rive/src/rive_core/runtime/exceptions/rive_format_error_exception.dart';
 import 'package:rive/src/rive_core/runtime/runtime_header.dart';
 import 'package:rive/src/runtime_nested_artboard.dart';
 import 'package:rive/src/utilities/binary_buffer/binary_reader.dart';
+
+class DressPiece {
+  String name; /// such as: coat_front/coat_back/pant_left/pant_right/...
+  Offset offset;
+  Uint8List uint8list; /// editor中使用
+
+  DressPiece({
+    required this.name,
+    required this.offset,
+    required this.uint8list,
+  });
+}
 
 Core<CoreContext>? _readRuntimeObject(
     BinaryReader reader, HashMap<int, CoreFieldType> propertyToField) {
@@ -88,10 +101,16 @@ class RiveFile {
   final _artboards = <Artboard>[];
   final FileAssetResolver? _assetResolver;
 
+  /// 骨骼动画中的素材名称集合
+  List<String> assetsNameList = [];
+  /// 需替换的素材信息
+  List<DressPiece> _pieces = [];
+
   RiveFile._(
     BinaryReader reader,
     this.header,
     this._assetResolver,
+    this._pieces,
   ) {
     /// Property fields table of contents
     final propertyToField = HashMap<int, CoreFieldType>();
@@ -189,9 +208,26 @@ class RiveFile {
           }
         case ImageAssetBase.typeKey:
           stackObject = FileAssetImporter(object as FileAsset, _assetResolver);
+          /// 添加name
+          assetsNameList.add(object.name);
           stackType = FileAssetBase.typeKey;
           break;
         default:
+          /// 此处添加替换piece素材代码
+          if (object is FileAssetContents && _pieces.isNotEmpty) {
+            var fileAssetImporter = importStack
+                .latest<FileAssetImporter>(FileAssetBase.typeKey);
+            if (fileAssetImporter != null) {
+              String standardName = fileAssetImporter.fileAsset.name;
+              for (final piece in _pieces) {
+                if (piece.name == standardName) {
+                  RiveCoreContext.setObjectProperty(
+                      object, FileAssetContentsBase.bytesPropertyKey, piece.uint8list);
+                  break;
+                }
+              }
+            }
+          }
           if (object is Component) {
             // helper = _ArtboardObjectImportHelper();
           }
@@ -254,7 +290,17 @@ class RiveFile {
     FileAssetResolver? assetResolver,
   }) {
     var reader = BinaryReader(bytes);
-    return RiveFile._(reader, RuntimeHeader.read(reader), assetResolver);
+    return RiveFile._(reader, RuntimeHeader.read(reader), assetResolver, []);
+  }
+
+  /// 传入可替换素材
+  factory RiveFile.dressImport(
+      ByteData bytes, {
+        FileAssetResolver? assetResolver,
+        pieces = const [],
+      }) {
+    var reader = BinaryReader(bytes);
+    return RiveFile._(reader, RuntimeHeader.read(reader), assetResolver, pieces);
   }
 
   /// Imports a Rive file from an asset bundle. Provide [basePath] if any nested
