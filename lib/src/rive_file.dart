@@ -30,6 +30,8 @@ import 'package:rive/src/rive_core/assets/image_asset.dart';
 import 'package:rive/src/rive_core/assets/file_asset_contents.dart';
 import 'package:rive/src/rive_core/backboard.dart';
 import 'package:rive/src/rive_core/component.dart';
+import 'package:rive/src/rive_core/shapes/image.dart';
+import 'package:rive/src/rive_core/math/vec2d.dart';
 import 'package:rive/src/rive_core/runtime/exceptions/rive_format_error_exception.dart';
 import 'package:rive/src/rive_core/runtime/runtime_header.dart';
 import 'package:rive/src/runtime_nested_artboard.dart';
@@ -222,9 +224,22 @@ class RiveFile {
               for (final piece in _pieces) {
                 if (piece.name == standardName) {
                   RiveCoreContext.setObjectProperty(
-                      object, FileAssetContentsBase.bytesPropertyKey, piece.uint8list);
+                      object,
+                      FileAssetContentsBase.bytesPropertyKey,
+                      piece.uint8list);
                   break;
                 }
+              }
+            }
+          }
+          if (object is Image && _pieces.isNotEmpty) {
+            final imageObj = object as Image;
+            String standardName = imageObj.name;
+            for (final piece in _pieces) {
+              if (piece.name == standardName) {
+                Vec2D offset = Vec2D.fromValues(piece.offset.dx, piece.offset.dy);
+                imageObj.translation += offset;
+                break;
               }
             }
           }
