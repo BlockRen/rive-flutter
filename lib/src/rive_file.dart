@@ -31,11 +31,11 @@ import 'package:rive/src/rive_core/assets/file_asset_contents.dart';
 import 'package:rive/src/rive_core/backboard.dart';
 import 'package:rive/src/rive_core/component.dart';
 import 'package:rive/src/rive_core/shapes/image.dart';
-import 'package:rive/src/rive_core/math/vec2d.dart';
 import 'package:rive/src/rive_core/runtime/exceptions/rive_format_error_exception.dart';
 import 'package:rive/src/rive_core/runtime/runtime_header.dart';
 import 'package:rive/src/runtime_nested_artboard.dart';
 import 'package:rive_common/utilities.dart';
+import 'package:rive_common/math.dart';
 
 class DressPiece {
   String name; /// such as: coat_front/coat_back/pant_left/pant_right/...
