@@ -35,7 +35,7 @@ import 'package:rive/src/rive_core/math/vec2d.dart';
 import 'package:rive/src/rive_core/runtime/exceptions/rive_format_error_exception.dart';
 import 'package:rive/src/rive_core/runtime/runtime_header.dart';
 import 'package:rive/src/runtime_nested_artboard.dart';
-import 'package:rive/src/utilities/binary_buffer/binary_reader.dart';
+import 'package:rive_common/utilities.dart';
 
 class DressPiece {
   String name; /// such as: coat_front/coat_back/pant_left/pant_right/...
@@ -334,7 +334,7 @@ class RiveFile {
     return RiveFile.import(bytes, assetResolver: _LocalAssetResolver(basePath));
   }
 
-  /// Imports a Rive file from a url over http. Provide an [assetResolver] if
+  /// Imports a Rive file from a URL over HTTP. Provide an [assetResolver] if
   /// your file contains images that needed to be loaded with separate network
   /// requests.
   static Future<RiveFile> network(String url,
