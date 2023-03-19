@@ -24,8 +24,9 @@ import 'package:rive/src/rive_core/rive_animation_controller.dart';
 import 'package:rive/src/rive_core/shapes/shape.dart';
 import 'package:rive_common/math.dart';
 
-/// Callback signature for satate machine state changes
-typedef OnStateChange = void Function(String, String);
+/// Callback signature for state machine state changes
+typedef OnStateChange = void Function(
+    String stateMachineName, String stateName);
 
 /// Callback signature for layer state changes
 typedef OnLayerStateChange = void Function(LayerState);
@@ -108,7 +109,11 @@ class LayerController {
 
   bool apply(CoreContext core, double elapsedSeconds) {
     if (_currentState != null) {
-      _currentState!.advance(elapsedSeconds, controller);
+      if (_currentState?.keepGoing == true) {
+        // NOTE: if we advance even after we have been told not to keep going
+        // we are not just inappropriate we are also re adding spilled time
+        _currentState!.advance(elapsedSeconds, controller);
+      }
     }
 
     _updateMix(elapsedSeconds);
@@ -135,6 +140,13 @@ class LayerController {
 
     _apply(core);
 
+    // give the current state the oportunity to clear spilled time, so that we
+    // do not carry this over into another iteration.
+    _currentState?.clearSpilledTime();
+
+    // We still need to mix in the current state if mix value is less than one
+    // as it still contributes to the end result.
+    // It may not need to advance but it does need to apply.
     return _mix != 1 || _waitingForExit || (_currentState?.keepGoing ?? false);
   }
 

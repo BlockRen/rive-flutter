@@ -1,3 +1,16 @@
+## 0.10.3
+
+- Fixes animations with negative speed to play from the end with ping pong and one shot animations. 
+- Update runtime to consider speed on animation states when playing state machines. 
+- Fix edge case with spilled time, by clearing spilled time after an advance cycle. 
+
+## 0.10.2
+
+- Performance improvement: No longer drawing components with an opacity of 0.
+- Updated example, see "Skinning Demo".
+- Support for negative speeds on linear animations when played back in state machines.
+- Support for overriding speed on animation states.
+
 ## 0.10.1
 
 - Fix [[277](https://github.com/rive-app/rive-flutter/issues/277)] and [[278](https://github.com/rive-app/rive-flutter/issues/278)] that resuled in `onInit` being called with each `setState` - thank you [xuelongqy](https://github.com/xuelongqy).
